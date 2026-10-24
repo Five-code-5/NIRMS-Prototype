@@ -7,12 +7,12 @@ from flask import g
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
    if os.environ.get("VERCEL"):
-       import shutil
-       DB_PATH = "/tmp/nirms.db"
-       if not os.path.exists(DB_PATH):
-           shutil.copy(os.path.join(BASE_DIR, "nirms.db"), DB_PATH)
-   else:
-       DB_PATH = os.path.join(BASE_DIR, "nirms.db")
+    import shutil
+    DB_PATH = "/tmp/nirms.db"
+    if not os.path.exists(DB_PATH):
+        shutil.copy(os.path.join(BASE_DIR, "nirms.db"), DB_PATH)
+else:
+    DB_PATH = os.path.join(BASE_DIR, "nirms.db")
 
 CATEGORIES = ["Internet Down", "Slow Connection", "WiFi Issue",
               "Website / Server Down", "Network Equipment", "Other"]
