@@ -1,2 +1,11 @@
-[tool.vercel]
-entrypoint = "admin_app:app"
+   [project]
+   name = "nirms"
+   version = "0.1.0"
+   requires-python = ">=3.10"
+   dependencies = [
+       "Flask>=3.0",
+       "reportlab>=4.0",
+   ]
+
+   [tool.vercel]
+   entrypoint = "admin_app:app"
