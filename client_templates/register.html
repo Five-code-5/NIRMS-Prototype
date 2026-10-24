@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Register{% endblock %}
+{% block content %}
+<div class="auth">
+  <h1>Create an account</h1>
+  <p class="sub">For DICT clients: agencies, offices, LGU staff and individuals.</p>
+  <div class="card">
+    <form method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="field"><label for="full_name">Full name</label>
+        <input type="text" id="full_name" name="full_name" required></div>
+      <div class="field"><label for="office">Office / Agency <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
+        <input type="text" id="office" name="office" placeholder="Leave blank if you are not with an office"></div>
+      <div class="field"><label for="email">Email</label>
+        <input type="email" id="email" name="email" required></div>
+      <div class="field"><label for="password">Password (min. 6 characters)</label>
+        <input type="password" id="password" name="password" required></div>
+      <button class="btn" style="width:100%">Register</button>
+    </form>
+    <p class="sub" style="margin:16px 0 0">Already registered? <a href="{{ url_for('login') }}">Log in</a></p>
+  </div>
+</div>
+{% endblock %}

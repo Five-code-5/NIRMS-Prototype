@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}New Report{% endblock %}
+{% block content %}
+<h1>Report a network issue</h1>
+<p class="sub">Tell the DICT Region X NOC what is wrong. You will get a ticket number to track it.</p>
+<div class="card" style="max-width:720px">
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="row2">
+      <div class="field"><label for="category">Issue type</label>
+        <select id="category" name="category" required>
+          {% for c in categories %}<option>{{ c }}</option>{% endfor %}
+        </select></div>
+      <div class="field"><label for="priority">How urgent is it?</label>
+        <select id="priority" name="priority">
+          {% for p in priorities %}<option {% if p == 'Medium' %}selected{% endif %}>{{ p }}</option>{% endfor %}
+        </select></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label for="device_type">Device affected</label>
+        <select id="device_type" name="device_type">
+          {% for d in device_types %}<option>{{ d }}</option>{% endfor %}
+        </select></div>
+      <div class="field"><label for="serial_no">Serial number / tag <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
+        <input type="text" id="serial_no" name="serial_no" placeholder="Found on a sticker on the device"></div>
+    </div>
+    <div class="field"><label for="location">Location</label>
+      <input type="text" id="location" name="location" placeholder="Building, floor, municipality" required></div>
+    <div class="field"><label for="description">What is happening?</label>
+      <textarea id="description" name="description" required
+        placeholder="When it started, who is affected, what you already tried..."></textarea></div>
+    <button class="btn">Submit report</button>
+    <a class="btn ghost" href="{{ url_for('dashboard') }}">Cancel</a>
+  </form>
+</div>
+{% endblock %}

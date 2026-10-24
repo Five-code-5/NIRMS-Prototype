@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Clients{% endblock %}
+{% block content %}
+<h1>Clients</h1>
+<p class="sub">Everyone who has registered in the client app, with their report history.</p>
+<div class="card">
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Name</th><th>Office / Agency</th><th>Email</th><th>Reports</th><th>Still open</th><th></th></tr></thead>
+    <tbody>
+    {% for c in clients %}
+      <tr>
+        <td><a href="{{ url_for('client_detail', client_id=c.id) }}">{{ c.full_name }}</a></td>
+        <td>{{ c.office }}</td><td>{{ c.email }}</td>
+        <td>{{ c.n }}</td><td>{{ c.open_n or 0 }}</td>
+        <td><a class="btn ghost" href="{{ url_for('client_detail', client_id=c.id) }}">History</a></td>
+      </tr>
+    {% else %}
+      <tr><td colspan="6" class="empty">No clients have registered yet.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+{% endblock %}

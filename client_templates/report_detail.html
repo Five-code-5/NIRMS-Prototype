@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}{{ report.ticket_no }}{% endblock %}
+{% block content %}
+<div class="toolbar">
+  <div>
+    <h1>{{ report.ticket_no }}</h1>
+    <p class="sub" style="margin:0">{{ report.category }} · submitted {{ report.created_at }}</p>
+  </div>
+  <div>
+    <span class="badge p-{{ report.priority }}">{{ report.priority }}</span>
+    <span class="badge s-{{ report.status|replace(' ', '-') }}">{{ report.status }}</span>
+  </div>
+</div>
+
+<div class="grid2">
+  <div class="card">
+    <h2>Details</h2>
+    <dl class="kv">
+      <dt>Location</dt><dd>{{ report.location }}</dd>
+      <dt>Device</dt><dd>{{ report.device_type or '—' }}{% if report.serial_no %} · {{ report.serial_no }}{% endif %}</dd>
+      <dt>Description</dt><dd>{{ report.description }}</dd>
+      <dt>Target date</dt><dd>{{ report.due_date or '—' }}</dd>
+      <dt>Assigned to</dt><dd>{{ report.assigned_to or 'Not yet assigned' }}</dd>
+      <dt>Action taken</dt><dd>{{ report.action_taken or '—' }}</dd>
+      <dt>Testing</dt><dd>Before: {{ report.pre_test }} · After: {{ report.post_test }}</dd>
+      <dt>NOC remarks</dt><dd>{{ report.remarks or '—' }}</dd>
+      <dt>Resolved on</dt><dd>{{ report.resolved_at or '—' }}</dd>
+      <dt>Last updated</dt><dd>{{ report.updated_at }}</dd>
+    </dl>
+  </div>
+  <div class="card">
+    <h2>Activity</h2>
+    <ul class="timeline">
+      {% for u in updates %}
+      <li><time>{{ u.created_at }} · {{ u.changed_by }}</time>{{ u.note }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+<p style="margin-top:18px"><a class="btn ghost" href="{{ url_for('dashboard') }}">Back to dashboard</a></p>
+{% endblock %}

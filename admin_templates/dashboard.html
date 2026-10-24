@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="page-h">
+  <div>
+    <h1>Dashboard</h1>
+    <p class="sub">Track network issues and NOC performance at a glance.</p>
+  </div>
+</div>
+
+<form method="get" class="fbar" id="fbar">
+  <div class="fgroup">
+    <span class="flabel">Period</span>
+    <div class="seg">
+      {% for key, label in period_buttons %}
+      <a href="{{ url_for('dashboard', period=key, status=status, priority=priority, category=category) }}"
+         class="{{ 'on' if period_name == key }}">{{ label }}</a>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="fgroup">
+    <input type="date" name="start" value="{{ start }}" aria-label="From">
+    <span class="flabel">to</span>
+    <input type="date" name="end" value="{{ end }}" aria-label="To">
+  </div>
+  <div class="fgroup">
+    <select name="status" aria-label="Status"><option value="">All statuses</option>
+      {% for s in statuses %}<option {{ 'selected' if status == s }}>{{ s }}</option>{% endfor %}</select>
+    <select name="priority" aria-label="Priority"><option value="">All priorities</option>
+      {% for p in priorities %}<option {{ 'selected' if priority == p }}>{{ p }}</option>{% endfor %}</select>
+    <select name="category" aria-label="Issue type"><option value="">All issue types</option>
+      {% for c in categories %}<option {{ 'selected' if category == c }}>{{ c }}</option>{% endfor %}</select>
+    <button class="btn sm">Apply</button>
+    <a class="btn ghost sm" href="{{ url_for('dashboard') }}">Reset</a>
+  </div>
+</form>
+
+<div class="kpis">
+  <div class="kpi"><div class="kpi-t"><span>Total tickets</span><i class="kpi-i c-blue">&#9776;</i></div><div class="kpi-n">{{ kpi.total }}</div></div>
+  <div class="kpi"><div class="kpi-t"><span>Open backlog</span><i class="kpi-i c-orange">!</i></div><div class="kpi-n">{{ kpi.backlog }}</div></div>
+  <div class="kpi"><div class="kpi-t"><span>Avg. resolution</span><i class="kpi-i c-teal">&#9201;</i></div>
+    <div class="kpi-n">{% if kpi.avg_days is not none %}{{ kpi.avg_days }}<small> days</small>{% else %}&mdash;{% endif %}</div></div>
+  <div class="kpi"><div class="kpi-t"><span>Resolved on time</span><i class="kpi-i c-green">&#9678;</i></div>
+    <div class="kpi-n">{% if kpi.on_time is not none %}{{ kpi.on_time }}<small>%</small>{% else %}&mdash;{% endif %}</div></div>
+  <a class="kpi link" href="{{ url_for('reports_list', overdue=1) }}"><div class="kpi-t"><span>Overdue now</span><i class="kpi-i c-red">&#9888;</i></div><div class="kpi-n">{{ kpi.overdue }}</div></a>
+  <div class="kpi"><div class="kpi-t"><span>Tickets resolved</span><i class="kpi-i c-green">&#10003;</i></div><div class="kpi-n">{{ kpi.resolved }}</div></div>
+</div>
+
+<div class="grid-2">
+  <section class="panel">
+    <h2>On-time resolution by priority</h2>
+    <p class="panel-s">Share of resolved tickets finished by their due date</p>
+    {% for r in sla %}
+    <div class="hbar">
+      <span class="hb-l">{{ r.name }}</span>
+      <div class="hb-t"><div class="hb-f p-{{ r.name }}" data-w="{{ r.pct if r.pct is not none else 0 }}"></div></div>
+      <span class="hb-v">{% if r.pct is not none %}{{ r.pct }}%{% else %}&mdash;{% endif %}</span>
+    </div>
+    {% endfor %}
+    <p class="panel-n">Due dates: Critical and High 3 days, Medium 5 days, Low 7 days. A dash means nothing was resolved yet.</p>
+  </section>
+
+  <section class="panel">
+    <h2>Ticket aging</h2>
+    <p class="panel-s">Open and in-progress tickets by how long they have waited</p>
+    {% for a in aging %}
+    <div class="hbar">
+      <span class="hb-l">{{ a.label }}</span>
+      <div class="hb-t"><div class="hb-f age-{{ loop.index }}" data-w="{{ (a.n / aging_max * 100)|round|int if aging_max else 0 }}"></div></div>
+      <span class="hb-v">{{ a.n }}</span>
+    </div>
+    {% endfor %}
+    {% if unassigned %}<p class="panel-n"><strong>{{ unassigned }}</strong> active ticket{{ 's' if unassigned != 1 }} not assigned to a technician yet.</p>{% endif %}
+  </section>
+</div>
+
+<div class="grid-2">
+  <section class="panel">
+    <h2>Technician leaderboard</h2>
+    <p class="panel-s">Performance by person assigned to the ticket</p>
+    <div class="table-wrap">
+    <table class="lb">
+      <thead><tr><th>Rank</th><th>Technician</th><th>Resolved</th><th>Avg. days</th><th>On time</th><th>Backlog</th></tr></thead>
+      <tbody>
+      {% for b in board %}
+        <tr><td><span class="rank r{{ loop.index if loop.index < 4 else 4 }}">{{ loop.index }}</span></td>
+          <td>{{ b.who }}</td><td><span class="pill g">{{ b.done }}</span></td>
+          <td>{{ b.avg if b.avg is not none else '—' }}</td>
+          <td>{% if b.pct is not none %}<span class="pill {{ 'g' if b.pct >= 80 else 'y' if b.pct >= 60 else 'r' }}">{{ b.pct }}%</span>{% else %}&mdash;{% endif %}</td>
+          <td><span class="pill {{ 'r' if b.open else 'n' }}">{{ b.open }}</span></td></tr>
+      {% else %}
+        <tr><td colspan="6" class="empty">No tickets have been assigned yet.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Top issue types</h2>
+    <p class="panel-s">Most common ticket categories in this period</p>
+    {% if cats %}
+    <div class="vbars">
+      {% for name, n in cats %}
+      <div class="vb">
+        <div class="vb-c"><div class="vb-f" data-h="{{ (n / cat_max * 100)|round|int }}"><span class="vb-n">{{ n }}</span></div></div>
+        <span class="vb-l">{{ name }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}<p class="empty">No data for this period.</p>{% endif %}
+  </section>
+</div>
+
+<div class="grid-2">
+  <section class="panel">
+    <h2>Status overview</h2>
+    <p class="panel-s">Where the {{ kpi.total }} ticket{{ 's' if kpi.total != 1 }} stand</p>
+    {% if kpi.total %}
+    <div class="stack">
+      {% for st in statuses %}{% if status_counts[st] %}
+      <div class="stack-i s-{{ st|replace(' ', '-') }}" data-f="{{ status_counts[st] }}" title="{{ st }}: {{ status_counts[st] }}"></div>
+      {% endif %}{% endfor %}
+    </div>
+    <div class="legend">
+      {% for st in statuses %}<span><i class="dot s-{{ st|replace(' ', '-') }}"></i>{{ st }} <strong>{{ status_counts[st] }}</strong></span>{% endfor %}
+    </div>
+    {% else %}<p class="empty">No data for this period.</p>{% endif %}
+  </section>
+
+  <section class="panel">
+    <h2>Latest tickets</h2>
+    <p class="panel-s"><a href="{{ url_for('reports_list') }}">View all reports &rarr;</a></p>
+    <div class="table-wrap">
+    <table class="lb">
+      <tbody>
+      {% for r in recent %}
+        <tr><td><a href="{{ url_for('edit_report', report_id=r.id) }}">{{ r.ticket_no }}</a><br><small class="muted">{{ r.full_name }}</small></td>
+          <td>{{ r.category }}<br><small class="muted">{{ r.location }}</small></td>
+          <td><span class="badge p-{{ r.priority }}">{{ r.priority }}</span></td>
+          <td><span class="badge s-{{ r.status|replace(' ', '-') }}">{{ r.status }}</span>{% if r.overdue %}<span class="badge late">Overdue</span>{% endif %}</td></tr>
+      {% else %}
+        <tr><td class="empty">No tickets in this period.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </section>
+</div>
+<script>
+  // Bar sizes come from the data-* attributes (keeps the template free of inline CSS).
+  document.querySelectorAll('[data-w]').forEach(function (el) { el.style.width = el.dataset.w + '%'; });
+  document.querySelectorAll('[data-h]').forEach(function (el) { el.style.height = el.dataset.h + '%'; });
+  document.querySelectorAll('[data-f]').forEach(function (el) { el.style.flex = el.dataset.f; });
+</script>
+{% endblock %}

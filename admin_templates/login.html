@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Staff login{% endblock %}
+{% block content %}
+<div class="auth">
+  <h1>NOC Staff Login</h1>
+  <p class="sub">Authorized DICT Region X personnel only.</p>
+  <div class="card">
+    <form method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="field"><label for="email">Email</label>
+        <input type="email" id="email" name="email" required autofocus></div>
+      <div class="field"><label for="password">Password</label>
+        <input type="password" id="password" name="password" required></div>
+      <button class="btn" style="width:100%">Log in</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

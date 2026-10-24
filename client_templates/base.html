@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}NIRMS{% endblock %} · NIRMS</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="{{ url_for('index') }}">NIRMS
+      <small>Report a network issue · DICT Region X</small></a>
+    {% if g.user %}
+    <nav>
+      <a href="{{ url_for('dashboard') }}">My Dashboard</a>
+      <a href="{{ url_for('new_report') }}">New Report</a>
+      <span class="who">{{ g.user.full_name }}</span>
+      <a href="{{ url_for('logout') }}">Log out</a>
+    </nav>
+    {% endif %}
+  </header>
+  <main>
+    {% for category, message in get_flashed_messages(with_categories=true) %}
+      <div class="flash {{ category }}">{{ message }}</div>
+    {% endfor %}
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}My Dashboard{% endblock %}
+{% block content %}
+<div class="toolbar">
+  <div>
+    <h1>My Dashboard</h1>
+    <p class="sub" style="margin:0">{{ g.user.office }} · track the network issues you reported.</p>
+  </div>
+  <a class="btn" href="{{ url_for('new_report') }}">+ Report an issue</a>
+</div>
+
+<div class="stats">
+  <div class="stat total"><div class="n">{{ total }}</div><div class="l">Total reports</div></div>
+  <div class="stat open"><div class="n">{{ counts['Open'] }}</div><div class="l">Open</div></div>
+  <div class="stat prog"><div class="n">{{ counts['In Progress'] }}</div><div class="l">In progress</div></div>
+  <div class="stat done"><div class="n">{{ counts['Resolved'] }}</div><div class="l">Resolved</div></div>
+  <div class="stat closed"><div class="n">{{ counts['Closed'] }}</div><div class="l">Closed</div></div>
+</div>
+
+<div class="card">
+  <h2>My reports</h2>
+    <p style="margin:0 0 12px"><a class="btn ghost" href="{{ url_for('my_reports_pdf') }}" target="_blank">Download my reports (PDF)</a></p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Ticket</th><th>Category</th><th>Location</th><th>Priority</th><th>Status</th><th>Submitted</th><th>Target date</th></tr></thead>
+    <tbody>
+    {% for r in reports %}
+      <tr>
+        <td><a href="{{ url_for('report_detail', report_id=r.id) }}">{{ r.ticket_no }}</a></td>
+        <td>{{ r.category }}</td>
+        <td>{{ r.location }}</td>
+        <td><span class="badge p-{{ r.priority }}">{{ r.priority }}</span></td>
+        <td><span class="badge s-{{ r.status|replace(' ', '-') }}">{{ r.status }}</span></td>
+        <td>{{ r.created_at }}</td>
+        <td>{{ r.due_date or '—' }}</td>
+      </tr>
+    {% else %}
+      <tr><td colspan="7" class="empty">You haven't reported anything yet.
+        <a href="{{ url_for('new_report') }}">Report your first issue</a>.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+{% endblock %}

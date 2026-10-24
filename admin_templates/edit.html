@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Edit {{ report.ticket_no }}{% endblock %}
+{% block content %}
+<div class="toolbar">
+  <div>
+    <h1>Edit {{ report.ticket_no }}</h1>
+    <p class="sub" style="margin:0">{{ report.category }} · {{ report.location }} · reported by {{ report.full_name }} ({{ report.office }})</p>
+  </div>
+  <a class="btn ghost" href="{{ url_for('report_pdf', report_id=report.id) }}" target="_blank">Print / PDF</a>
+</div>
+
+<div class="grid2">
+  <div>
+    <div class="card">
+      <h2>Client's report</h2>
+      <p style="margin:0 0 10px">{{ report.description }}</p>
+      <p class="sub" style="margin:0">Device: {{ report.device_type or '—' }}{% if report.serial_no %} · Serial/tag: {{ report.serial_no }}{% endif %}
+        · Submitted {{ report.created_at }}{% if report.resolved_at %} · Resolved {{ report.resolved_at }}{% endif %}</p>
+    </div>
+    <div class="card">
+      <h2>Update this report</h2>
+      <form method="post">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="row2">
+          <div class="field"><label for="status">Status</label>
+            <select id="status" name="status">
+              {% for s in statuses %}<option {% if report.status == s %}selected{% endif %}>{{ s }}</option>{% endfor %}
+            </select></div>
+          <div class="field"><label for="priority">Priority</label>
+            <select id="priority" name="priority">
+              {% for p in priorities %}<option {% if report.priority == p %}selected{% endif %}>{{ p }}</option>{% endfor %}
+            </select></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label for="due_date">Due date</label>
+            <input type="date" id="due_date" name="due_date" value="{{ report.due_date }}"></div>
+          <div class="field"><label for="assigned_to">Assigned to (technician / team)</label>
+            <input type="text" id="assigned_to" name="assigned_to" value="{{ report.assigned_to }}"></div>
+        </div>
+        <div class="field"><label for="repair_type">How will it be fixed?</label>
+          <select id="repair_type" name="repair_type">
+            {% for t in repair_types %}<option value="{{ t }}" {% if report.repair_type == t %}selected{% endif %}>{{ t or 'Not decided yet' }}</option>{% endfor %}
+          </select></div>
+        <div class="row2">
+          <div class="field"><label for="pre_test">Pre-test (before the fix)</label>
+            <select id="pre_test" name="pre_test">
+              {% for t in test_results %}<option {% if report.pre_test == t %}selected{% endif %}>{{ t }}</option>{% endfor %}
+            </select></div>
+          <div class="field"><label for="post_test">Post-test (with the end user)</label>
+            <select id="post_test" name="post_test">
+              {% for t in test_results %}<option {% if report.post_test == t %}selected{% endif %}>{{ t }}</option>{% endfor %}
+            </select></div>
+        </div>
+        <div class="field"><label for="action_taken">Action taken</label>
+          <textarea id="action_taken" name="action_taken" style="min-height:80px">{{ report.action_taken }}</textarea></div>
+        <div class="field"><label for="remarks">Remarks (visible to the client)</label>
+          <textarea id="remarks" name="remarks" style="min-height:80px">{{ report.remarks }}</textarea></div>
+        <button class="btn">Save changes</button>
+        <a class="btn ghost" href="{{ url_for('reports_list') }}">Cancel</a>
+      </form>
+    </div>
+    <div class="card">
+      <form method="post" action="{{ url_for('delete_report', report_id=report.id) }}"
+            onsubmit="return confirm('Delete {{ report.ticket_no }} permanently?');">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn danger">Delete report</button>
+      </form>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Activity</h2>
+    <ul class="timeline">
+      {% for u in updates %}
+      <li><time>{{ u.created_at }} · {{ u.changed_by }}</time>{{ u.note }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endblock %}

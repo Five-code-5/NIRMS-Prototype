@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}All Reports{% endblock %}
+{% block content %}
+<div class="page-h">
+  <div>
+    <h1>{% if filters.overdue %}Overdue Tickets{% else %}All Reports{% endif %}</h1>
+    <p class="sub">{% if filters.overdue %}Open tickets past their due date. {% endif %}All reports submitted by DICT clients. Click a ticket to edit it.</p>
+  </div>
+  <div class="actions">
+    <a class="btn" href="{{ url_for('export_pdf', **request.args.to_dict()) }}" target="_blank">Export list as PDF</a>
+    <a class="btn ghost" href="{{ url_for('export_csv', **request.args.to_dict()) }}">Export as CSV (Excel)</a>
+  </div>
+</div>
+
+<section class="panel">
+  <form method="get" class="filters">
+    {% if filters.overdue %}<input type="hidden" name="overdue" value="1">{% endif %}
+    <div><label for="q">Search</label>
+      <input type="text" id="q" name="q" value="{{ filters.q }}" placeholder="Ticket, location, client, office..."></div>
+    <div><label for="status">Status</label>
+      <select id="status" name="status"><option value="">All</option>
+        {% for s in statuses %}<option {% if filters.status == s %}selected{% endif %}>{{ s }}</option>{% endfor %}</select></div>
+    <div><label for="category">Issue type</label>
+      <select id="category" name="category"><option value="">All</option>
+        {% for c in categories %}<option {% if filters.category == c %}selected{% endif %}>{{ c }}</option>{% endfor %}</select></div>
+    <div><label for="priority">Priority</label>
+      <select id="priority" name="priority"><option value="">All</option>
+        {% for p in priorities %}<option {% if filters.priority == p %}selected{% endif %}>{{ p }}</option>{% endfor %}</select></div>
+    <div><button class="btn">Filter</button></div>
+  </form>
+  <p class="panel-n" style="margin:0 0 12px">The exports contain exactly what the filters show. {{ reports|length }} ticket{{ 's' if reports|length != 1 }} listed.
+    {% if filters.overdue %}<a href="{{ url_for('reports_list') }}">Show all</a>{% endif %}</p>
+
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Ticket</th><th>Client</th><th>Issue</th><th>Location</th><th>Priority</th><th>Status</th><th>Due</th><th>Assigned</th><th></th></tr></thead>
+    <tbody>
+    {% for r in reports %}
+      <tr>
+        <td><a href="{{ url_for('edit_report', report_id=r.id) }}">{{ r.ticket_no }}</a></td>
+        <td>{{ r.full_name }}<br><small class="muted">{{ r.office }}</small></td>
+        <td>{{ r.category }}{% if r.device_type and r.device_type != 'Not applicable' %}<br><small class="muted">{{ r.device_type }}</small>{% endif %}</td>
+        <td>{{ r.location }}</td>
+        <td><span class="badge p-{{ r.priority }}">{{ r.priority }}</span></td>
+        <td><span class="badge s-{{ r.status|replace(' ', '-') }}">{{ r.status }}</span></td>
+        <td>{{ r.due_date or '—' }}{% if r.overdue %}<span class="badge late">Overdue</span>{% endif %}</td>
+        <td>{{ r.assigned_to or '—' }}</td>
+        <td><a class="btn ghost sm" href="{{ url_for('edit_report', report_id=r.id) }}">Edit</a></td>
+      </tr>
+    {% else %}
+      <tr><td colspan="9" class="empty">No reports match.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</section>
+{% endblock %}

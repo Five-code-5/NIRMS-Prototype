@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Reports & Charts{% endblock %}
+
+{% macro bars(rows) %}
+<div class="bars">
+  {% for label, n, pct in rows %}
+  <div class="bar-row">
+    <span>{{ label }}</span>
+    <div class="track"><div class="fill" data-w="{{ pct }}"></div></div>
+    <span>{{ n }}</span>
+  </div>
+  {% else %}<p class="empty">No data for this period.</p>{% endfor %}
+</div>
+{% endmacro %}
+
+{% block content %}
+<div class="toolbar">
+  <div>
+    <h1>Reports &amp; Charts</h1>
+    <p class="sub" style="margin:0">Showing: <strong>{{ period.label }}</strong> ({{ period.start }} to {{ period.end }})</p>
+  </div>
+  <a class="btn" href="{{ url_for('analytics_pdf', period=period.name, start=period.start, end=period.end) }}" target="_blank">Download PDF report</a>
+</div>
+
+<form method="get" class="card period">
+  <div><label for="period">Period</label>
+    <select id="period" name="period">
+      <option value="this_month" {% if period.name == 'this_month' %}selected{% endif %}>This month</option>
+      <option value="last_month" {% if period.name == 'last_month' %}selected{% endif %}>Last month</option>
+      <option value="this_quarter" {% if period.name == 'this_quarter' %}selected{% endif %}>This quarter</option>
+      <option value="last_quarter" {% if period.name == 'last_quarter' %}selected{% endif %}>Last quarter</option>
+      <option value="this_year" {% if period.name == 'this_year' %}selected{% endif %}>This year</option>
+      <option value="custom" {% if period.name == 'custom' %}selected{% endif %}>Custom dates</option>
+    </select></div>
+  <div><label for="start">From (custom only)</label><input type="date" id="start" name="start" value="{{ period.start }}"></div>
+  <div><label for="end">To (custom only)</label><input type="date" id="end" name="end" value="{{ period.end }}"></div>
+  <div><button class="btn">Show</button></div>
+</form>
+
+<div class="stats">
+  <div class="stat total"><div class="n">{{ s.total }}</div><div class="l">Reports received</div></div>
+  <div class="stat done"><div class="n">{{ s.resolved }}</div><div class="l">Resolved / closed</div></div>
+  <div class="stat prog"><div class="n">{{ s.rate if s.rate is not none else '—' }}{% if s.rate is not none %}%{% endif %}</div><div class="l">Resolution rate</div></div>
+  <div class="stat open"><div class="n">{{ s.avg_days if s.avg_days is not none else '—' }}</div><div class="l">Avg. days to resolve</div></div>
+  <div class="stat done"><div class="n">{{ s.on_time_pct if s.on_time_pct is not none else '—' }}{% if s.on_time_pct is not none %}%{% endif %}</div><div class="l">Resolved on time</div></div>
+  <div class="stat crit"><div class="n">{{ s.overdue }}</div><div class="l">Overdue now</div></div>
+</div>
+
+{% if compare %}
+<div class="card">
+  <h2>Compared with {{ period.prev.label }}</h2>
+  <table>
+    <thead><tr><th>Measure</th><th>{{ period.label }}</th><th>{{ period.prev.label }}</th><th>Change</th></tr></thead>
+    <tbody>
+    {% for r in compare %}
+      <tr><td>{{ r.name }}</td><td>{{ r.cur }}</td><td>{{ r.prev }}</td><td class="{{ r.tone }}">{{ r.delta }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<div class="cols2">
+  <div class="card"><h2>Issues by type</h2>{{ bars(category_bars) }}</div>
+  <div class="card"><h2>Issues by priority</h2>{{ bars(priority_bars) }}</div>
+  <div class="card"><h2>Devices involved</h2>{{ bars(device_bars) }}</div>
+  <div class="card"><h2>How issues were handled</h2>{{ bars(repair_bars) }}</div>
+</div>
+
+<div class="card" style="margin-top:18px">
+  <h2>Reports received, last 6 months</h2>
+  {{ bars(trend_bars) }}
+</div>
+
+<div class="card" style="margin-top:18px">
+  <h2>Repeat problems (same place and issue, 2 or more times)</h2>
+  <table>
+    <thead><tr><th>Location</th><th>Issue type</th><th>Times</th></tr></thead>
+    <tbody>
+    {% for loc, cat, n in s.repeats %}
+      <tr><td>{{ loc }}</td><td>{{ cat }}</td><td>{{ n }}</td></tr>
+    {% else %}
+      <tr><td colspan="3" class="empty">No repeat problems in this period.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+<script>
+  document.querySelectorAll('.fill').forEach(function (el) {
+    el.style.width = el.dataset.w + '%';
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Log in{% endblock %}
+{% block content %}
+<div class="auth">
+  <h1>Welcome to NIRMS</h1>
+  <p class="sub">Report and track network issues with DICT Region X.</p>
+  <div class="card">
+        <form method="post">
+         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="field"><label for="email">Email</label>
+        <input type="email" id="email" name="email" required autofocus></div>
+      <div class="field"><label for="password">Password</label>
+        <input type="password" id="password" name="password" required></div>
+      <button class="btn" style="width:100%">Log in</button>
+    </form>
+    <p class="sub" style="margin:16px 0 0">No account? <a href="{{ url_for('register') }}">Register here</a></p>
+  </div>
+</div>
+{% endblock %}

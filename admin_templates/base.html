@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}NOC{% endblock %} · NIRMS Admin</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}">
+</head>
+{% macro icon(name) %}
+<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+{% if name == 'dash' %}<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>
+{% elif name == 'list' %}<path d="M8 6h13M8 12h13M8 18h13"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/>
+{% elif name == 'alert' %}<path d="M12 3l10 18H2L12 3z"/><path d="M12 10v5M12 18v.01"/>
+{% elif name == 'chart' %}<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>
+{% elif name == 'users' %}<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><path d="M16 4.6a3.5 3.5 0 010 6.8M18 14.8c2 .7 3.2 2.4 3.5 5.2"/>
+{% elif name == 'key' %}<circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M16 7l3 3"/>
+{% elif name == 'out' %}<path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>
+{% elif name == 'search' %}<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>
+{% endif %}</svg>
+{% endmacro %}
+<body class="admin">
+{% if g.user %}
+<div class="shell">
+  <aside class="side" id="side">
+    <a class="logo" href="{{ url_for('dashboard') }}">
+      <span class="logo-mark">N</span>
+      <span>NIRMS<small>NOC Console · DICT Region X</small></span>
+    </a>
+    {% set ep = request.endpoint %}
+    <nav>
+      <a class="{{ 'on' if ep == 'dashboard' }}" href="{{ url_for('dashboard') }}">{{ icon('dash') }}Dashboard</a>
+      <a class="{{ 'on' if ep in ('reports_list', 'edit_report') and not request.args.get('overdue') }}" href="{{ url_for('reports_list') }}">{{ icon('list') }}All Reports</a>
+      <a class="{{ 'on' if ep == 'reports_list' and request.args.get('overdue') }}" href="{{ url_for('reports_list', overdue=1) }}">{{ icon('alert') }}Overdue</a>
+      <a class="{{ 'on' if ep in ('analytics',) }}" href="{{ url_for('analytics') }}">{{ icon('chart') }}Reports &amp; Charts</a>
+      <a class="{{ 'on' if ep in ('clients', 'client_detail') }}" href="{{ url_for('clients') }}">{{ icon('users') }}Clients</a>
+      <div class="side-h">Account</div>
+      <a class="{{ 'on' if ep == 'change_password' }}" href="{{ url_for('change_password') }}">{{ icon('key') }}Password</a>
+      <a href="{{ url_for('logout') }}">{{ icon('out') }}Log out</a>
+    </nav>
+    <div class="side-user">
+      <span class="avatar">{{ g.user.full_name[:1]|upper }}</span>
+      <span>{{ g.user.full_name }}<small>NOC staff</small></span>
+    </div>
+  </aside>
+  <div class="content">
+    <header class="top">
+      <button class="menu-btn" type="button" onclick="document.getElementById('side').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+      <form class="gsearch" action="{{ url_for('reports_list') }}" method="get">
+        {{ icon('search') }}<input type="text" name="q" placeholder="Search tickets, clients, offices..." aria-label="Search">
+      </form>
+    </header>
+    <main>
+      {% for category, message in get_flashed_messages(with_categories=true) %}
+        <div class="flash {{ category }}">{{ message }}</div>
+      {% endfor %}
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
+{% else %}
+<main class="plain">
+  {% for category, message in get_flashed_messages(with_categories=true) %}
+    <div class="flash {{ category }}">{{ message }}</div>
+  {% endfor %}
+  {% block content_plain %}{{ self.content() }}{% endblock %}
+</main>
+{% endif %}
+</body>
+</html>
