@@ -9,4 +9,4 @@
    ]
 
    [tool.vercel]
-   entrypoint = "admin_app:app"
+   entrypoint = "client_app:app"
